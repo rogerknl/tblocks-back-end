@@ -20,6 +20,7 @@ class TeltrisGame {
       },
       matrix: null,
       score: 0,
+      level:0,
     }
 
     this.dropCounter = 0;

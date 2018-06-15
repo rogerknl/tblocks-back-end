@@ -3,9 +3,10 @@
 /**
  * Clear any lines that can be cleared in the arena specified. For each line
  * cleared, add 10 points to the score of the player.
+ *
  */
 arenaSweep = (arena, player) => {
-  let rowCount = 1;
+  let rowCount = 0;
   outer: for (let y = arena.length -1; y > 0; --y) {
     for (let x = 0; x < arena[y].length; ++x) {
       if (arena[y][x] === 0) {
@@ -16,8 +17,25 @@ arenaSweep = (arena, player) => {
     const row = arena.splice(y, 1)[0].fill(0);
     arena.unshift(row);
     ++y;
+    rowCount++;
+    // player.score += rowCount*10;
 
-    player.score += rowCount*10;
+  }
+  switch ( rowCount ){
+    case 1:
+      player.score += 40 * (player.level + 1);
+      break;
+    case 2:
+      player.score += 100 * (player.level + 1);
+      break;
+    case 3:
+      player.score += 300 * (player.level + 1);
+      break;
+    case 4:
+      player.score += 1200 * (player.level + 1);
+      break;
+    default:
+
   }
 }
 
