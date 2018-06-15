@@ -21,6 +21,7 @@ arenaSweep = (arena, player) => {
     // player.score += rowCount*10;
 
   }
+
   switch ( rowCount ){
     case 1:
       player.score += 40 * (player.level + 1);
@@ -35,8 +36,10 @@ arenaSweep = (arena, player) => {
       player.score += 1200 * (player.level + 1);
       break;
     default:
-
   }
+  player.lines += rowCount;
+  let aux = Math.floor(Number(player.lines) / 5);
+  aux <= 19 ? player.level = aux : player.level = 19;
 }
 
 rotate = (matrix, direction) => {

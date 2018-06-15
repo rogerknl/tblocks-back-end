@@ -20,11 +20,12 @@ class TeltrisGame {
       },
       matrix: null,
       score: 0,
-      level:0,
+      level: 0,
+      lines: 0
     }
 
     this.dropCounter = 0;
-    this.dropInterval = 1000;
+    this.dropInterval = 1000-(50*this.player.level);
     this.updateInterval = null;
     this.lastTime = 0;
 
@@ -50,6 +51,7 @@ class TeltrisGame {
   // ------ Functions ------
   clear() {
     gl.arenaSweep(this.arena, this.player);
+    this.dropInterval = 1000-(50*this.player.level);
   }
 
   emitBoardStatus() {
@@ -65,6 +67,11 @@ class TeltrisGame {
       hf.merge(this.arena, this.player);
       this.playerReset();
       gl.arenaSweep(this.arena, this.player);
+
+      clearInterval(this.updateInterval);
+      this.dropInterval = 1000-(50*this.player.level);
+      this.update();
+
     }
     this.dropCounter = 0;
     this.emitBoardStatus();
@@ -79,6 +86,11 @@ class TeltrisGame {
     hf.merge(this.arena, this.player);
     this.playerReset();
     gl.arenaSweep(this.arena, this.player);
+    clearInterval(this.updateInterval);
+    this.dropInterval = 1000-(50*this.player.level);
+    this.update();
+
+
     this.dropCounter = 0;
     this.emitBoardStatus();
   }
