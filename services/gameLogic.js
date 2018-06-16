@@ -45,6 +45,7 @@ arenaSweep = (arena, player) => {
   player.lines += rowCount;
   let aux = Math.floor(Number(player.lines) / 5);
   aux <= 19 ? player.level = aux : player.level = 19;
+  return rowCount;
 }
 
 rotate = (matrix, direction) => {

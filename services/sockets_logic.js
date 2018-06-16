@@ -42,6 +42,8 @@ exports.keyPressed = (data) => {
   const gameID = data.player.gameID;
   const userID = data.player.id;
 
+  if(TeltrisGame.games[gameID].finished) return null;
+
   const boardIndex = TeltrisGame.games[gameID].players.indexOf(userID);
   const board = TeltrisGame.games[gameID].boards[boardIndex];
   if (data.key === 'left') {

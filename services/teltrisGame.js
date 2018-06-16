@@ -26,7 +26,7 @@ class TeltrisGame {
       rowDest: false,
       fRowDest: false,
     }
-
+    this.finished = false;
     this.dropCounter = 0;
     this.dropInterval = 1000-(50*this.player.level);
     this.updateInterval = null;
@@ -37,19 +37,19 @@ class TeltrisGame {
     // TODO: this.updateScore();
   }
 
-  testGame() {
-    setInterval(() => {
-      if (this.arena[2][0] === 1) {
-        this.arena[2].fill(0);
-      } else {
-        this.arena[2].fill(1);
-      }
+  // testGame() {
+  //   setInterval(() => {
+  //     if (this.arena[2][0] === 1) {
+  //       this.arena[2].fill(0);
+  //     } else {
+  //       this.arena[2].fill(1);
+  //     }
 
-      for (const currentClient of games[this.gameID].players) {
-        this.socket.nsp.to(currentClient).emit('updateBoard', {board:this.arena, playerID: this.playerID});
-      }
-    }, 1000);
-  }
+  //     for (const currentClient of games[this.gameID].players) {
+  //       this.socket.nsp.to(currentClient).emit('updateBoard', {board:this.arena, playerID: this.playerID});
+  //     }
+  //   }, 1000);
+  // }
 
   // ------ Functions ------
   clear() {
@@ -66,13 +66,39 @@ class TeltrisGame {
     this.player.fRowDest = false;
   }
 
+  //If player destroys more than 1 line adds them on his enemy
+  createPain(board, rows){
+    for (let i=0; i < rows; i++ ){
+      const arrAux = [];
+      let pos = Math.floor(this.arena[0].length * Math.random());
+      for (let j = 0; j < this.arena[0].length; j++ ){
+        j===pos ? arrAux.push(0) : arrAux.push(5);
+      }
+      board.arena.push( arrAux );
+      board.arena.shift();
+    }
+  }
+
   playerDrop() {
+    if (this.finished) {
+      clearInterval(this.updateInterval);
+      return null;
+    }
+
     this.player.pos.y++;
     if (gl.collide(this.arena, this.player)) {
       this.player.pos.y--;
       hf.merge(this.arena, this.player);
-      this.playerReset();
-      gl.arenaSweep(this.arena, this.player);
+      if (!this.finished) this.playerReset();
+
+      let howmany = gl.arenaSweep(this.arena, this.player);
+
+
+      for(const board of games[this.gameID].boards) {
+        if (howmany > 1 && board.playerID !== this.playerID){
+          this.createPain( board, howmany );
+        }
+      }
 
       clearInterval(this.updateInterval);
       this.dropInterval = 1000-(50*this.player.level);
@@ -90,8 +116,15 @@ class TeltrisGame {
 
     this.player.pos.y--;
     hf.merge(this.arena, this.player);
-    this.playerReset();
-    gl.arenaSweep(this.arena, this.player);
+    if (!this.finished) this.playerReset();
+    let howmany = gl.arenaSweep(this.arena, this.player);
+
+    for(const board of games[this.gameID].boards) {
+      if (howmany > 1 && board.playerID !== this.playerID){
+        this.createPain( board, howmany );
+      }
+    }
+
     clearInterval(this.updateInterval);
     this.dropInterval = 1000-(50*this.player.level);
     this.update();
@@ -123,11 +156,12 @@ class TeltrisGame {
         } else {
           this.socket.nsp.to(currentClient).emit('finishGame', 'You won');
         }
-
       }
-      clearInterval(this.updateInterval);
-      // this.player.score = 0;
-      // this.updateScore();
+      //if finish clear all updates
+      for(const board of games[this.gameID].boards){
+        clearInterval(board.updateInterval);
+      }
+      this.finished = true;
     }
   }
 
