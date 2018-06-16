@@ -25,15 +25,19 @@ arenaSweep = (arena, player) => {
   switch ( rowCount ){
     case 1:
       player.score += 40 * (player.level + 1);
+      player.rowDest = true;
       break;
     case 2:
       player.score += 100 * (player.level + 1);
+      player.rowDest = true;
       break;
     case 3:
       player.score += 300 * (player.level + 1);
+      player.rowDest = true;
       break;
     case 4:
       player.score += 1200 * (player.level + 1);
+      player.rowDest = true;
       break;
     default:
   }

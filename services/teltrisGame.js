@@ -21,7 +21,9 @@ class TeltrisGame {
       matrix: null,
       score: 0,
       level: 0,
-      lines: 0
+      lines: 0,
+      collision: false,
+      rowDest: false
     }
 
     this.dropCounter = 0;
@@ -58,6 +60,8 @@ class TeltrisGame {
     for (const currentClient of games[this.gameID].players) {
       this.socket.nsp.to(currentClient).emit('updateBoard', {board: this.arena, player:this.player, playerID: this.playerID});
     }
+    this.player.rowDest = false;
+    this.player.collision = false;
   }
 
   playerDrop() {
@@ -71,7 +75,7 @@ class TeltrisGame {
       clearInterval(this.updateInterval);
       this.dropInterval = 1000-(50*this.player.level);
       this.update();
-
+      this.player.collision = true;
     }
     this.dropCounter = 0;
     this.emitBoardStatus();
@@ -90,8 +94,8 @@ class TeltrisGame {
     this.dropInterval = 1000-(50*this.player.level);
     this.update();
 
-
     this.dropCounter = 0;
+    this.player.collision = true;
     this.emitBoardStatus();
   }
 
