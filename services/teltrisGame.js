@@ -23,7 +23,8 @@ class TeltrisGame {
       level: 0,
       lines: 0,
       collision: false,
-      rowDest: false
+      rowDest: false,
+      fRowDest: false,
     }
 
     this.dropCounter = 0;
@@ -62,6 +63,7 @@ class TeltrisGame {
     }
     this.player.rowDest = false;
     this.player.collision = false;
+    this.player.fRowDest = false;
   }
 
   playerDrop() {

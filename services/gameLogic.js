@@ -38,6 +38,7 @@ arenaSweep = (arena, player) => {
     case 4:
       player.score += 1200 * (player.level + 1);
       player.rowDest = true;
+      player.fRowDest = true;
       break;
     default:
   }
