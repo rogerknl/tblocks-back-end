@@ -12,8 +12,19 @@ io.on('connection', (socket) => {
     socket.nsp.to(currentPlayer).emit('players online', socketsLogic.allPlayers.length);
   }
 
-  socket.on('makePlayerAvailable', (name) => {
-    socketsLogic.makePlayerAvailable(socket, name);
+  socket.on('makePlayerAvailable', (name,option) => {
+    switch (option){
+      case '1':
+        socketsLogic.makePlayerSolo(socket, name);
+        break;
+      case '2':
+        socketsLogic.makePlayerAvailableVS(socket, name);
+        break;
+      case '3':
+        socketsLogic.makePlayerAvailableFFA(socket, name);
+        break;
+      default:
+    }
   });
 
   socket.on('keyPressed', (data) => {
