@@ -87,13 +87,14 @@ exports.makePlayerAvailableFFA = (socket, name) => {
     const gameID = uuid();
 
     // Create a match
-    const p1Board = new TeltrisGame.TeltrisGame(gameID, newPlayer.id, socket);
-    const p2Board = new TeltrisGame.TeltrisGame(gameID, opponent1.id, socket);
-    const p3Board = new TeltrisGame.TeltrisGame(gameID, opponent2.id, socket);
+    const p1Board = new TeltrisGame.TeltrisGame(gameID, newPlayer.id, socket, 'FFA', 3);
+    const p2Board = new TeltrisGame.TeltrisGame(gameID, opponent1.id, socket, 'FFA', 3);
+    const p3Board = new TeltrisGame.TeltrisGame(gameID, opponent2.id, socket, 'FFA', 3);
 
     TeltrisGame.games[gameID] = {
       players: [newPlayer.id, opponent1.id, opponent2.id],
-      boards: [p1Board, p2Board, p3Board]
+      boards: [p1Board, p2Board, p3Board],
+      alive: [newPlayer.id, opponent1.id, opponent2.id],
     };
 
     newPlayer.gameID = gameID;
@@ -124,7 +125,7 @@ exports.makePlayerSolo = (socket, name) => {
   const gameID = uuid();
 
   // Create a match
-  const p1Board = new TeltrisGame.TeltrisGame(gameID, newPlayer.id, socket);
+  const p1Board = new TeltrisGame.TeltrisGame(gameID, newPlayer.id, socket, 'solo', 1);
 
   TeltrisGame.games[gameID] = {
     players: [newPlayer.id],
@@ -159,8 +160,8 @@ exports.makePlayerAvailableVS = (socket, name) => {
     const gameID = uuid();
 
     // Create a match
-    const p1Board = new TeltrisGame.TeltrisGame(gameID, newPlayer.id, socket);
-    const p2Board = new TeltrisGame.TeltrisGame(gameID, opponent.id, socket);
+    const p1Board = new TeltrisGame.TeltrisGame(gameID, newPlayer.id, socket, 'VS', 2);
+    const p2Board = new TeltrisGame.TeltrisGame(gameID, opponent.id, socket, 'VS', 2);
 
     TeltrisGame.games[gameID] = {
       players: [newPlayer.id, opponent.id],
@@ -178,17 +179,3 @@ exports.makePlayerAvailableVS = (socket, name) => {
     p2Board.update();
   }
 }
-
-
-
-
-// colors = [
-//   null,
-//   '#a000f0',    // T
-//   '#f0a000',    // L
-//   '#0000f0',    // J
-//   '#00f000',    // S
-//   '#f00000',    // Z
-//   '#00f0f0',    // L
-//   '#f0f000'     // O
-// ];
