@@ -4,10 +4,12 @@ const gl = require(__dirname+'/gameLogic');
 const games = {};
 
 class TeltrisGame {
-  constructor(gameID, playerID, socket) {
+  constructor(gameID, playerID, socket, gameOption, numPlayers) {
     this.socket = socket;
     this.gameID = gameID;
     this.playerID = playerID;
+    this.gameOption = gameOption;
+    this.numPlayers = numPlayers;
     // ------ Game Data ------
     // Board
     this.arena = hf.createMatrix(12, 20);
@@ -25,31 +27,15 @@ class TeltrisGame {
       collision: false,
       rowDest: false,
       fRowDest: false,
+      dead: false,
     }
     this.finished = false;
     this.dropCounter = 0;
     this.dropInterval = 1000-(50*this.player.level);
     this.updateInterval = null;
     this.lastTime = 0;
-
-    // ------ Initialisation ------
-    // Initialisation of the game
-    // TODO: this.updateScore();
   }
 
-  // testGame() {
-  //   setInterval(() => {
-  //     if (this.arena[2][0] === 1) {
-  //       this.arena[2].fill(0);
-  //     } else {
-  //       this.arena[2].fill(1);
-  //     }
-
-  //     for (const currentClient of games[this.gameID].players) {
-  //       this.socket.nsp.to(currentClient).emit('updateBoard', {board:this.arena, playerID: this.playerID});
-  //     }
-  //   }, 1000);
-  // }
 
   // ------ Functions ------
   clear() {
@@ -80,7 +66,7 @@ class TeltrisGame {
   }
 
   playerDrop() {
-    if (this.finished) {
+    if (this.player.dead || this.finished) {
       clearInterval(this.updateInterval);
       return null;
     }
@@ -89,7 +75,7 @@ class TeltrisGame {
     if (gl.collide(this.arena, this.player)) {
       this.player.pos.y--;
       hf.merge(this.arena, this.player);
-      if (!this.finished) this.playerReset();
+      if (!this.player.dead) this.playerReset();
 
       let howmany = gl.arenaSweep(this.arena, this.player);
 
@@ -116,7 +102,7 @@ class TeltrisGame {
 
     this.player.pos.y--;
     hf.merge(this.arena, this.player);
-    if (!this.finished) this.playerReset();
+    if (!this.player.dead) this.playerReset();
     let howmany = gl.arenaSweep(this.arena, this.player);
 
     for(const board of games[this.gameID].boards) {
@@ -141,27 +127,57 @@ class TeltrisGame {
     this.player.pos.x = (this.arena[0].length / 2 | 0) - (Math.floor(this.player.matrix[0].length / 2));
 
     if (gl.collide(this.arena, this.player)) {
-      // Get the name of the player who lost
-      let loser;
-      for (let z = 0; z < games[this.gameID].players.length; z++) {
-        const currentPlayer = games[this.gameID].players[z];
-        if (currentPlayer === this.playerID) {
-          loser = currentPlayer;
-        }
-      }
+      this.player.dead = true;
 
-      for (const currentClient of games[this.gameID].players) {
-        if (currentClient === loser) {
-          this.socket.nsp.to(currentClient).emit('finishGame', 'You lost');
-        } else {
-          this.socket.nsp.to(currentClient).emit('finishGame', 'You won');
+
+      this.socket.nsp.to(this.playerID).emit('updateBoard', {board: this.arena, player:this.player, playerID: this.playerID});
+
+      if (this.gameOption === 'solo'){
+        const message = {};
+        message[this.playerID] = 'GAME OVER';
+        this.socket.nsp.to(this.playerID).emit('finishGame', message);
+
+      } else if (this.gameOption === 'VS'){
+        const message = {};
+        for (const currentPlayer of games[this.gameID].players){
+          if (currentPlayer === this.playerID) {
+            message[currentPlayer] = 'LOST';
+          } else message[currentPlayer] = 'WON'
+        }
+        for (const currentPlayer of games[this.gameID].players){
+          this.socket.nsp.to(currentPlayer).emit('finishGame', message );
+        }
+
+      } else {
+        let index = games[this.gameID].alive.indexOf(this.playerID);
+        games[this.gameID].alive.splice(index,1);
+
+        const message = {};
+        if (games[this.gameID].alive.length === 1) {
+          this.finished = true;
+
+          for ( const currentPlayer of games[this.gameID].players) {
+            if ( currentPlayer === games[this.gameID].alive[0] ) {
+              message[currentPlayer]=' WON';
+            } else message[currentPlayer]=' LOST';
+          }
+          for ( const currentPlayer of games[this.gameID].players) {
+            this.socket.nsp.to(currentPlayer).emit('finishGame', message );
+          }
+          for(const board of games[this.gameID].boards){
+            clearInterval(board.updateInterval);
+            this.finished = true;
+          }
         }
       }
       //if finish clear all updates
-      for(const board of games[this.gameID].boards){
-        clearInterval(board.updateInterval);
+      if (this.gameOption === 'solo' || this.gameOption === 'VS') {
+        for(const board of games[this.gameID].boards){
+          clearInterval(board.updateInterval);
+          this.finished = true;
+        }
       }
-      this.finished = true;
+
     }
   }
 
