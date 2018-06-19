@@ -9,9 +9,9 @@ const availablePlayersVS = [];
 const availablePlayersFFA = [];
 
 let playerCount = 0;
-module.exports.playerCount = playerCount;
-module.exports.availablePlayersVS = availablePlayersVS;
-module.exports.availablePlayersFFA = availablePlayersFFA;
+// module.exports.playerCount = playerCount;
+// module.exports.availablePlayersVS = availablePlayersVS;
+// module.exports.availablePlayersFFA = availablePlayersFFA;
 module.exports.allPlayers = allPlayers;
 
 function searchAndRemoveDiscFromArr(arr, socket) {
@@ -46,6 +46,9 @@ exports.keyPressed = (data) => {
   const gameID = data.player.gameID;
   const userID = data.player.id;
 
+  console.log(data)
+
+
   if(TeltrisGame.games[gameID].finished) return null;
 
   const boardIndex = TeltrisGame.games[gameID].players.indexOf(userID);
@@ -70,7 +73,6 @@ exports.makePlayerAvailableFFA = (socket, name) => {
   const newPlayer = {
     id: socket.id,
     name: name,
-    board: null,
     gameID: null
   };
 
@@ -117,7 +119,6 @@ exports.makePlayerSolo = (socket, name) => {
   const newPlayer = {
     id: socket.id,
     name: name,
-    board: null,
     gameID: null
   };
 
@@ -145,7 +146,6 @@ exports.makePlayerAvailableVS = (socket, name) => {
   const newPlayer = {
     id: socket.id,
     name: name,
-    board: null,
     gameID: null
   };
 
