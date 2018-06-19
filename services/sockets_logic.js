@@ -135,6 +135,8 @@ exports.makePlayerSolo = (socket, name) => {
 
   newPlayer.gameID = gameID;
 
+  console.log(socket.nsp)
+
   socket.nsp.to(socket.id).emit('updateClient', {status:'pair', player: newPlayer, opponents: []});
 
   p1Board.playerReset();
