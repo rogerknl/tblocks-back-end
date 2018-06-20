@@ -9,10 +9,15 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 const socketsLogic = require('./services/sockets_logic.js');
 
+
 mongoose.connect('mongodb://localhost/TetrisPlayers')
 
 app.use(cors());
 app.use(bodyParser.json({type: '*/*'}));
 router(app);
+
+require('./services/sockets_logic').socketHandler(io);
+
+
 
 http.listen(port, () => console.log(`Listening on port ${port}`));

@@ -14,6 +14,64 @@ let playerCount = 0;
 // module.exports.availablePlayersFFA = availablePlayersFFA;
 module.exports.allPlayers = allPlayers;
 
+
+module.exports.socketHandler = (io) => {
+
+  io.of('/bla').on('connection', (nsp)=> {
+    nsp.emit('players online', allPlayers.length);
+    console.log('name',nsp.id)
+    nsp.on('makePlayerAvailable',()=>{
+      console.log("fuckU")
+    });
+    nsp.on('keyPressed', ()=>{
+      console.log("hum")
+    });
+    nsp.on('disconnect', ()=> {
+      console.log("disconet")
+
+    });
+  });
+  io.on('connection', (socket) => {
+    allPlayers.push(socket.id);
+    console.log("socket")
+    //delete io.nsps['/bla'];
+    for (const currentPlayer of allPlayers) {
+            // Broadcast the player count to all players online
+        socket.nsp.to(currentPlayer).emit('players online', allPlayers.length);
+    }
+
+    socket.on('makePlayerAvailable', (name,option) => {
+      console.log(name,' ',option)
+      switch (option){
+        case '1':
+          this.makePlayerSolo(socket, name);
+          break;
+        case '2':
+          this.makePlayerAvailableVS(socket, name);
+          break;
+        case '3':
+          this.makePlayerAvailableFFA(socket, name);
+          break;
+        default:
+      }
+    });
+
+    socket.on('keyPressed', (data) => {
+      this.keyPressed(data);
+    });
+
+
+    socket.on('disconnect', () => {
+      console.log("socket disconnected")
+      this.disconnect(socket)
+    });
+  });
+};
+
+
+
+
+
 function searchAndRemoveDiscFromArr(arr, socket) {
   let indexToDelete = null;
   for (let i = 0; i < arr.length; i++) {
@@ -45,9 +103,6 @@ exports.disconnect = (socket) => {
 exports.keyPressed = (data) => {
   const gameID = data.player.gameID;
   const userID = data.player.id;
-
-  console.log(data)
-
 
   if(TeltrisGame.games[gameID].finished) return null;
 
@@ -134,8 +189,6 @@ exports.makePlayerSolo = (socket, name) => {
   };
 
   newPlayer.gameID = gameID;
-
-  console.log(socket.nsp)
 
   socket.nsp.to(socket.id).emit('updateClient', {status:'pair', player: newPlayer, opponents: []});
 
