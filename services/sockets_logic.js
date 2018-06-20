@@ -7,71 +7,47 @@ const uuid = require('uuid');
 const allPlayers = [];
 const availablePlayersVS = [];
 const availablePlayersFFA = [];
-
 let playerCount = 0;
-// module.exports.playerCount = playerCount;
-// module.exports.availablePlayersVS = availablePlayersVS;
-// module.exports.availablePlayersFFA = availablePlayersFFA;
-module.exports.allPlayers = allPlayers;
 
 
+// module.exports.allPlayers = allPlayers;
+
+//We create Socket listener there
 module.exports.socketHandler = (io) => {
-
-  io.of('/bla').on('connection', (nsp)=> {
-    nsp.emit('players online', allPlayers.length);
-    console.log('name',nsp.id)
-    nsp.on('makePlayerAvailable',()=>{
-      console.log("fuckU")
-    });
-    nsp.on('keyPressed', ()=>{
-      console.log("hum")
-    });
-    nsp.on('disconnect', ()=> {
-      console.log("disconet")
-
-    });
-  });
   io.on('connection', (socket) => {
     allPlayers.push(socket.id);
-    console.log("socket")
-    //delete io.nsps['/bla'];
-    for (const currentPlayer of allPlayers) {
-            // Broadcast the player count to all players online
-        socket.nsp.to(currentPlayer).emit('players online', allPlayers.length);
-    }
+    console.log("socket establshed", socket.id);
 
+    //When game option is sended, here is the call to correct funct
     socket.on('makePlayerAvailable', (name,option) => {
-      console.log(name,' ',option)
       switch (option){
         case '1':
-          this.makePlayerSolo(socket, name);
+          makePlayerSolo(socket, name);
           break;
         case '2':
-          this.makePlayerAvailableVS(socket, name);
+          makePlayerAvailableVS(socket, name);
           break;
         case '3':
-          this.makePlayerAvailableFFA(socket, name);
+          makePlayerAvailableFFA(socket, name);
           break;
         default:
       }
     });
 
+    //Listener used for all piece movements
     socket.on('keyPressed', (data) => {
-      this.keyPressed(data);
+      keyPressed(data);
     });
 
-
+    //on diconnect socket
     socket.on('disconnect', () => {
-      console.log("socket disconnected")
-      this.disconnect(socket)
+      console.log("socket removed")
+      disconnect(socket)
     });
   });
 };
 
-
-
-
-
+//auxiliar function for Disconnect
 function searchAndRemoveDiscFromArr(arr, socket) {
   let indexToDelete = null;
   for (let i = 0; i < arr.length; i++) {
@@ -83,10 +59,9 @@ function searchAndRemoveDiscFromArr(arr, socket) {
   if (indexToDelete) {
     arr.splice(Number(indexToDelete), 1);
   }
-
 }
 
-exports.disconnect = (socket) => {
+const disconnect = (socket) => {
   // If the user which disconnected was in the list of available players,
   // remove it from there
   searchAndRemoveDiscFromArr(availablePlayersVS, socket);
@@ -100,10 +75,13 @@ exports.disconnect = (socket) => {
   }
 };
 
-exports.keyPressed = (data) => {
+
+//Here is managed movement instructions
+const keyPressed = (data) => {
   const gameID = data.player.gameID;
   const userID = data.player.id;
 
+  //if the game is finished we avoid the movement (should't be necessary/client hackt)
   if(TeltrisGame.games[gameID].finished) return null;
 
   const boardIndex = TeltrisGame.games[gameID].players.indexOf(userID);
@@ -124,13 +102,16 @@ exports.keyPressed = (data) => {
     board.playerDropToBottom();
   }
 }
-exports.makePlayerAvailableFFA = (socket, name) => {
+
+//FFA mode
+makePlayerAvailableFFA = (socket, name) => {
   const newPlayer = {
     id: socket.id,
     name: name,
     gameID: null
   };
 
+  //Wait for 3 players in this mode
   if (availablePlayersFFA.length < 2) {
     availablePlayersFFA.push(newPlayer);
     // Now that the user has been made available, update the client
@@ -158,10 +139,12 @@ exports.makePlayerAvailableFFA = (socket, name) => {
     opponent1.gameID = gameID;
     opponent2.gameID = gameID;
 
+    // Information of players to client
     socket.nsp.to(socket.id).emit('updateClient', {status:'pair', player: newPlayer, opponents: [opponent1,opponent2]});
     socket.nsp.to(opponent1.id).emit('updateClient', {status:'pair', player: opponent1, opponents: [newPlayer,opponent2], });
     socket.nsp.to(opponent2.id).emit('updateClient', {status:'pair', player: opponent2, opponents: [newPlayer,opponent1], });
 
+    //game starts here
     p1Board.playerReset();
     p1Board.update();
     p2Board.playerReset();
@@ -170,7 +153,8 @@ exports.makePlayerAvailableFFA = (socket, name) => {
     p3Board.update();
   }
 }
-exports.makePlayerSolo = (socket, name) => {
+//Solo mode
+const makePlayerSolo = (socket, name) => {
   const newPlayer = {
     id: socket.id,
     name: name,
@@ -190,20 +174,23 @@ exports.makePlayerSolo = (socket, name) => {
 
   newPlayer.gameID = gameID;
 
+  //Information of players to client
   socket.nsp.to(socket.id).emit('updateClient', {status:'pair', player: newPlayer, opponents: []});
 
+  //game starts here
   p1Board.playerReset();
   p1Board.update();
 
 }
 //ORIGINAL 1VS1
-exports.makePlayerAvailableVS = (socket, name) => {
+makePlayerAvailableVS = (socket, name) => {
   const newPlayer = {
     id: socket.id,
     name: name,
     gameID: null
   };
 
+  //Wait for 2 players in this mode
   if (availablePlayersVS.length === 0) {
     availablePlayersVS.push(newPlayer);
     // Now that the user has been made available, update the client
@@ -226,8 +213,11 @@ exports.makePlayerAvailableVS = (socket, name) => {
     newPlayer.gameID = gameID;
     opponent.gameID = gameID;
 
+    //Information of players to client
     socket.nsp.to(socket.id).emit('updateClient', {status:'pair', player: newPlayer, opponents: [opponent]});
     socket.nsp.to(opponent.id).emit('updateClient', {status:'pair', player: opponent, opponents: [newPlayer]});
+
+    //game starts here
     p1Board.playerReset();
     p1Board.update();
     p2Board.playerReset();
