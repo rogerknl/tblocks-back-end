@@ -7,8 +7,8 @@
  */
 arenaSweep = (arena, player) => {
   let rowCount = 0;
-  outer: for (let y = arena.length -1; y > 0; --y) {
-    for (let x = 0; x < arena[y].length; ++x) {
+  outer: for ( let y = arena.length -1; y > 0; --y ) {
+    for ( let x = 0; x < arena[y].length; ++x ) {
       if (arena[y][x] === 0) {
         continue outer;
       }
@@ -18,32 +18,34 @@ arenaSweep = (arena, player) => {
     arena.unshift(row);
     ++y;
     rowCount++;
-    // player.score += rowCount*10;
-
   }
-
+  //score values are the same as others tetrs
   switch ( rowCount ){
     case 1:
-      player.score += 40 * (player.level + 1);
+      player.score += 40 * ( player.level + 1 );
       player.rowDest = true;
       break;
     case 2:
-      player.score += 100 * (player.level + 1);
+      player.score += 100 * ( player.level + 1 );
       player.rowDest = true;
       break;
     case 3:
-      player.score += 300 * (player.level + 1);
+      player.score += 300 * ( player.level + 1 );
       player.rowDest = true;
       break;
     case 4:
-      player.score += 1200 * (player.level + 1);
+      player.score += 1200 * ( player.level + 1 );
       player.rowDest = true;
+
+      //4 lines in row destroyed mark for gif event
       player.fRowDest = true;
       break;
     default:
   }
   player.lines += rowCount;
-  let aux = Math.floor(Number(player.lines) / 5);
+
+  //increase lvl every 5 rows; lvl 19 is maximum
+  let aux = Math.floor( Number( player.lines ) / 5 );
   aux <= 19 ? player.level = aux : player.level = 19;
   return rowCount;
 }
