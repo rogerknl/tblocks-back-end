@@ -15,7 +15,8 @@ instance of the game alive and send updates to the front-end when needed.
 If you want to run your own version of the back-end, you'll need to do the
 following:
 
-* Clone this repo
+* Clone this repository
+
 * Install dependencies using `npm i`
 * Run the server using: `node index.js`
 
@@ -30,6 +31,7 @@ If you'd like to contribute to this project, feel free to open a new issue in
 this repository so we can get a conversation started.
 
 ## Authors
+
 
 ###### Authors of actual refactor:
 
