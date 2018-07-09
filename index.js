@@ -15,6 +15,16 @@ app.use(cors());
 app.use(bodyParser.json({type: '*/*'}));
 router(app);
 
+io.on('connection', (socket) => {
+  socketsLogic.allPlayers.push(socket.id);
+
+
+mongoose.connect('mongodb://localhost/TetrisPlayers')
+
+app.use(cors());
+app.use(bodyParser.json({type: '*/*'}));
+router(app);
+
 require('./services/sockets_logic').socketHandler(io);
 
 
